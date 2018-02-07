@@ -2,30 +2,44 @@ package main
 
 import (
 	"bufio"
+	"flag"
 	"fmt"
-	"os"
-	"strings"
 	"io/ioutil"
+	"os"
+	"strconv"
+	"strings"
 )
 
-// Gotta specify in which file we found the string
-// Is using the whole path a good idea? Probably.
-// Use a boolean to determine if we print results.
+// To do:
+// Exclude filetypes
+// Search only certain filetypes
+// Eventually, regexes.
+
+
+type foundElement struct {
+	number int
+	line   string
+}
+
+// Flag used to ask if we print lines or not.
+var plns = flag.Bool("printLines", false, "Print the lines where the search term was found")
 
 func main() {
-	if len(os.Args) < 2 {
+	flag.Parse()
+
+	if len(flag.Args()) < 1 {
 		fmt.Println("Word required, exiting!")
 		os.Exit(0)
 	} else {
-		searchterm := os.Args[1]
-		files := getFiles()
-		for _, f := range files{
-			searchFile(f, searchterm)	
+		searchterm := flag.Args()[0]
+		files := scanDirs()
+		for _, f := range files {
+			searchFile(f, searchterm)
 		}
 	}
 }
 
-func getFiles() []string {
+func scanDirs() []string {
 	var allDirs []string
 	var allFiles []string
 	var errors []error
@@ -41,17 +55,17 @@ func getFiles() []string {
 		if err != nil {
 			errors = append(errors, err)
 		} else {
-			// Separate between files and dirs
+			// Separate between files and dirs, then store in corresponing array
 			for _, f := range startFiles {
 				if f.IsDir() {
 					dirNameToSave = currentDir + f.Name()
 					allDirs = append(allDirs, dirNameToSave)
 				} else {
-					allFiles = append(allFiles, currentDir + f.Name())
+					allFiles = append(allFiles, currentDir+f.Name())
 				}
 			}
 		}
-		// Slice out the file we already used
+		// Slice out the directory we already used
 		allDirs = allDirs[1:]
 	}
 
@@ -65,30 +79,54 @@ func getFiles() []string {
 	return allFiles
 }
 
-
 func searchFile(filename string, search_term string) {
-	file, err := os.Open(filename)
+	// initialize variables
+	var elementsFound []foundElement
+	var elemFound foundElement
+	counter := 0
+	found := false
 
+	file, err := os.Open(filename)
 	if err != nil {
 		fmt.Println(err)
 	} else {
 		defer file.Close()
-		
-		counter := 0
-		found := false
+
 		scanner := bufio.NewScanner(file)
-		
+
 		for scanner.Scan() {
 			counter++
-		
 			if strings.Contains(scanner.Text(), search_term) {
 				found = true
-				fmt.Printf("\nLine %d: %s", counter, scanner.Text())
+				elemFound.number = counter
+				elemFound.line = scanner.Text()
+				elementsFound = append(elementsFound, elemFound)
 			}
 		}
 
-		if !found {
-			fmt.Println("Word not found in document.")
+		if found {
+			if *plns {
+				// print filename, line numbers and lines.
+				fmt.Println(filename)
+				for _, fElem := range elementsFound {
+					fmt.Printf("%d: %s\n", fElem.number, fElem.line)
+				}
+
+				fmt.Println("")
+
+			} else {
+				// Onl print filename and line numbers
+				var lineList string
+				for index, fElem := range elementsFound {
+					if index == 0 {
+						lineList = lineList + strconv.Itoa(fElem.number)
+					} else {
+						lineList = lineList + ", " + strconv.Itoa(fElem.number)
+					}
+				}
+
+				fmt.Println(filename + ": " + lineList + "\n")
+			}
 		}
 	}
 }
