@@ -22,7 +22,11 @@ type foundElement struct {
 }
 
 // Flag used to ask if we print lines or not.
-var plns = flag.Bool("printLines", false, "Print the lines where the search term was found")
+var ptlns = flag.Bool("printLines", false, "Print the lines where the search term was found")
+// Flag used to ask if we want to search only certain filetypes
+var incExt = flag.String("incExt", "", "Only search in files with the given extension. Multiple inclusions can be given by separating with \",\"")
+// Flag to ask if we want to exclude filetypes
+var excExt = flag.String("excExt", "", "Exclude filetypes from search. Multiple exclusions can be given by separating with \",\"")
 
 func main() {
 	flag.Parse()
@@ -50,6 +54,7 @@ func scanDirs() []string {
 
 	for len(allDirs) > 0 {
 		currentDir = allDirs[0] + "/"
+		// Returns []os.FileInfo
 		startFiles, err := ioutil.ReadDir(currentDir)
 		// Error checking
 		if err != nil {
@@ -61,7 +66,7 @@ func scanDirs() []string {
 					dirNameToSave = currentDir + f.Name()
 					allDirs = append(allDirs, dirNameToSave)
 				} else {
-					allFiles = append(allFiles, currentDir+f.Name())
+					allFiles = manageExtensions(f.Name(), currentDir, allFiles, *incExt, *excExt)
 				}
 			}
 		}
@@ -105,7 +110,7 @@ func searchFile(filename string, search_term string) {
 		}
 
 		if found {
-			if *plns {
+			if *ptlns {
 				// print filename, line numbers and lines.
 				fmt.Println(filename)
 				for _, fElem := range elementsFound {
@@ -129,4 +134,53 @@ func searchFile(filename string, search_term string) {
 			}
 		}
 	}
+}
+
+// Return a list that includes files with specified extensions or excludes files with specified extensions. Include overrides exclude.
+func manageExtensions(filename string, currentDir string, fileList []string, includingExt string, excludingExt string) []string {
+	ext := getFiletype(filename)
+	incExtList := strings.Split(includingExt, ",")
+	excExtList := strings.Split(excludingExt, ",")
+
+	// If both lists are empty, add
+	if includingExt == "" && excludingExt == "" {
+		retArray := append(fileList, currentDir + filename)
+		return retArray
+	// if extension in include list, add
+	} else if strInArray(ext, incExtList) {
+		retArray := append(fileList, currentDir + filename)
+		return retArray
+	// if extension not in exclude list, add
+	} else if !strInArray(ext, excExtList){
+		retArray := append(fileList, currentDir + filename)
+		return retArray
+	// return unmodified list
+	} else {
+		return fileList
+	}
+}
+
+// Split files by "." and return las element in array
+func getFiletype (filename string) string {
+	fileSplit := strings.Split(filename, ".")
+	filetype := fileSplit[len(fileSplit) - 1]
+
+	// If the filetype is the same as filename it means that there was no extension.
+	if filetype == filename {
+		return ""
+	} else {
+		return filetype
+	}
+}
+
+// Iterate over an array and check if it contains a string
+func strInArray(str string, array []string) bool{
+	retBool := false
+	for _, s := range array {
+		if str == s {
+			retBool = true
+		}
+	}
+
+	return retBool
 }
