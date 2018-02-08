@@ -6,10 +6,14 @@ Making database connections
 
 
 #  DONE: #
-Arrays (arrays.go)
-Reading files (readFile.go)
-Mutexes (mutex.go)
-Channels (chans.go)
-Individual file search (search.go)
-List files in current and child directories (listFiles.go)
-Search for word in all files in current and children directory (searchAll.go)
+arrays.go                     - Arrays
+chans.go                      - Channels
+flags.go                      - How to use flags
+flagsAndArgs.go               - How to use flags and positional arguments
+idFileTypeFromFileInfo.go     - Find a filetype from the info ioutil.ReadDir gives us
+listFiles.go                  - List files in current and child directories
+mutex.go                      - Mutexes
+readFile.go                   - Reading files
+search.go                     - Individual file search
+searchAll.go                  - Search for word in all files in current and children directory
+stringSplit.go                - String splitting, different scenarios
