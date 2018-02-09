@@ -14,6 +14,7 @@ idFileTypeFromFileInfo.go     - Find a filetype from the info ioutil.ReadDir giv
 listFiles.go                  - List files in current and child directories
 mutex.go                      - Mutexes
 readFile.go                   - Reading files
+regex.go                      - Testing regexp
 search.go                     - Individual file search
 searchAll.go                  - Search for word in all files in current and children directory
 stringSplit.go                - String splitting, different scenarios
