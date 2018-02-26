@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"os"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -40,7 +41,12 @@ func main() {
 
 	// Make sure either a regex or search term is provided.
 	if len(flag.Args()) == 0 && *regFlag == "" {
-		fmt.Println("Word or regex required, exiting!")
+		files := scanDirs()
+		sort.Strings(files)
+		fmt.Println("Files found:")
+		for _, f := range files {
+			fmt.Println(f)
+		}
 		os.Exit(0)
 	} else if len(flag.Args()) > 0 && *regFlag != "" {
 		fmt.Println("Please only provide either a search term or regular expression. Exiting.")
@@ -49,6 +55,9 @@ func main() {
 		// Assign either search term or compile and assign regex.
 		if len(flag.Args()) != 0 {
 			searchTerm = flag.Args()[0]
+			if len(flag.Args()) > 1 {
+				fmt.Println("Remember to put the search term after the flags, otherwise the flags won't work as intended.\n")
+			}
 		} else {
 			fmt.Println(*regFlag)
 			var err error
@@ -179,7 +188,7 @@ func manageExtensions(filename string, currentDir string, fileList []string, inc
 		retArray := append(fileList, currentDir+filename)
 		return retArray
 		// If extension not in exclude list, add.
-	} else if !strInArray(ext, excExtList) {
+	} else if !strInArray(ext, excExtList) && len(excExtList) > 0 {
 		retArray := append(fileList, currentDir+filename)
 		return retArray
 		// return unmodified list since no conditions were met.

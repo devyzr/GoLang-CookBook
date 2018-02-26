@@ -6,6 +6,8 @@ import (
 	"os"
 )
 
+// Lists all files in the base directory and it's children directories, but doesn't give full path
+
 func main() {
 	allF := getFiles()
 
