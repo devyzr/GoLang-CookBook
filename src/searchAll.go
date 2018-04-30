@@ -13,7 +13,11 @@ import (
 )
 
 // To do:
+// Add help text
 // Add regex presets
+// Add filename search
+// Add ability to search in specified paths
+// Add case-insensitive search
 
 type foundElement struct {
 	number int
@@ -36,7 +40,11 @@ var excExt = flag.String("excExt", "", "Exclude filetypes from search. Multiple 
 // Flag to ask if we're going to use a regex.
 var regFlag = flag.String("regex", "", "Search based on a regular expression.")
 
+// Help text
+var helpFlag = flag.Bool("h", false, "Print this help message")
+
 func main() {
+	flag.BoolVar(helpFlag, "help", false, "Print this help message")
 	flag.Parse()
 
 	// Make sure either a regex or search term is provided.
